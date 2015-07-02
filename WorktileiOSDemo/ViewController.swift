@@ -34,24 +34,24 @@ class ViewController: UIViewController , WorktileDelegate {
         currentAuthorizeViewController.dismissViewControllerAnimated(true, completion: nil)
         if success == true {
             print("Authorize success!")
-            
-            // After
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC))),dispatch_get_main_queue()) {
-                print("After...")
-                
-                // 刷新 Token
-                self.worktile.toRefreshToken()
-                
-                // 获取用户信息
-                self.worktile.profile({ (response) -> Void in
-                    print(response)
-                })
-                
-            }
-            
         }else{
             print("Authorize falied")
         }
+    }
+    
+    // MARK: -
+    
+    @IBAction func refreshToken(sender: UIButton) {
+        // 刷新 Token
+        worktile.toRefreshToken()
+        print("refresh token.")
+    }
+    
+    @IBAction func getUserInfo(sender: UIButton) {
+        // 获取用户信息
+        worktile.profile({ (response) -> Void in
+            print("profile: \(response)")
+        })
     }
 }
 

@@ -36,10 +36,17 @@ class ViewController: UIViewController , WorktileDelegate {
             print("Authorize success!")
             
             // After
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(3 * Double(NSEC_PER_SEC))),dispatch_get_main_queue()) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC))),dispatch_get_main_queue()) {
                 print("After...")
                 
+                // 刷新 Token
                 self.worktile.toRefreshToken()
+                
+                // 获取用户信息
+                self.worktile.profile({ (response) -> Void in
+                    print(response)
+                })
+                
             }
             
         }else{

@@ -41,6 +41,8 @@ public class Worktile : AuthorizeWebControllerDelegate {
     /// Alamofire Manager
     var httpManager: Manager
     
+    // MARK: Init
+    
     /**
     构造函数
     
@@ -57,6 +59,8 @@ public class Worktile : AuthorizeWebControllerDelegate {
         let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
         httpManager = Alamofire.Manager(configuration: configuration)
     }
+    
+    // MARK: OAuth
     
     /**
     获取 access_token
@@ -100,7 +104,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
         if let refreshToken = self.refreshToken {
             Alamofire.request(.GET, URLString: "https://api.worktile.com/oauth2/refresh_token", parameters: ["client_id": clientID,"refresh_token": refreshToken])
                 .responseJSON { (_, _, JSON, _) in
-                    if let jsonDict = JSON {
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject>{
                         
                         // Success
                         if let accessToken = jsonDict["access_token"] as? String {
@@ -140,7 +144,36 @@ public class Worktile : AuthorizeWebControllerDelegate {
             }
         }
     }
+    
+    // MARK: User
+    
+    /**
+    获取用户
+    
+    :param: finishCallback 返回内容
+    */
+    public func profile(finishCallback:(Dictionary<String,AnyObject>) -> Void) {
+        if let accessToken = accessToken {
+            httpManager.request(.GET, "https://api.worktile.com/v1/user/profile", parameters: ["access_token":accessToken])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        if let errorCode = jsonDict["error_code"] , errorMessage = jsonDict["error_message"] {
+                            print("refreshToken - error:\(errorCode),\(errorMessage)")
+                        }
+                    }
+            }
+        }
+
+    }
+    
 }
+
+// MARK: Delegate
 
 /**
 *  Worktile 回调
@@ -154,7 +187,7 @@ public protocol WorktileDelegate {
     func authorizeComplate(currentAuthorizeViewController: UIViewController, success: Bool)
 }
 
-/// MARK : AuthorizeWebController
+// MARK: AuthorizeWebController
 
 /**
 *  授权登录的 WebViewController 回调给 Worktile

@@ -29,9 +29,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
     
     /// 根据 /oauth2/authorize 组装拼接的 OAuth2 授权地址
     public var authorizeURL: String {
-        get {
-            return "https://api.worktile.com/oauth2/authorize?client_id=\(clientID)&redirect_uri=\(Worktile.redirectURI)&display=mobile"
-        }
+        return "https://api.worktile.com/oauth2/authorize?client_id=\(clientID)&redirect_uri=\(Worktile.redirectURI)&display=mobile"
     }
     
     /// 当前授权控制器
@@ -71,7 +69,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
                 .responseJSON { (_, _, JSON, _) in
 
                     var jsonDict = JSON as! [String:AnyObject]
-                    
+
                     // Success
                     if let accessToken = jsonDict["access_token"] as? String {
                         self.accessToken = accessToken
@@ -101,8 +99,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
     public func toRefreshToken(){
         if let refreshToken = self.refreshToken {
             Alamofire.request(.GET, URLString: "https://api.worktile.com/oauth2/refresh_token", parameters: ["client_id": clientID,"refresh_token": refreshToken])
-                .responseJSON { (request, _, JSON, _) in
-                    print(request!.HTTPBody)
+                .responseJSON { (_, _, JSON, _) in
                     if let jsonDict = JSON {
                         
                         // Success
@@ -127,21 +124,22 @@ public class Worktile : AuthorizeWebControllerDelegate {
     
     /// 授权成功
     func authorizeComplate(authorizeCode: String?) {
-        if authorizeCode?.characters.count > 0 {
-            // 储存获取到的 code
-            self.authorizeCode = authorizeCode!
-            
-            // 获取 Access token
-            self.getAccessToken()
-            
-            // 获取成功
-            self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: true)
-        }else{
-            // 获取失败
-            self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: false)
+        if let authorizeCode = authorizeCode {
+            if authorizeCode.characters.count > 0 {
+                // 储存获取到的 code
+                self.authorizeCode = authorizeCode
+                
+                // 获取 Access token
+                self.getAccessToken()
+                
+                // 获取成功
+                self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: true)
+            }else{
+                // 获取失败
+                self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: false)
+            }
         }
     }
-
 }
 
 /**

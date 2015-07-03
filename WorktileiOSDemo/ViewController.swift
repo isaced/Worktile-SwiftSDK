@@ -54,13 +54,13 @@ class ViewController: UITableViewController , WorktileDelegate {
             default: print("-")
             }
         case 1: // 用户
-            worktile.profile({ (response) -> Void in
+            worktile.profile() { response in
                 print("profile: \(response)")
-            })
+            }
         case 2: // 团队
             switch indexPath.row {
             case 0: // 团队列表
-                worktile.teams({ (response) -> Void in
+                worktile.teams() { response in
                     print(response)
                     
                     // 取一个团队ID后面用
@@ -69,33 +69,29 @@ class ViewController: UITableViewController , WorktileDelegate {
                             self.teamID = firstTeam["team_id"] as? String
                         }
                     }
-                    
-                })
+                }
             case 1: // 团队信息
                 if let teamID = self.teamID {
-                    worktile.teamInfo(teamID, finishCallback: { (response) -> Void in
+                    worktile.teamInfo(teamID) { response in
                         print(response)
-                    })
+                    }
                 }
             case 2: // 团队成员
                 if let teamID = self.teamID {
-                    worktile.teamMembers(teamID, finishCallback: { (response) -> Void in
+                    worktile.teamMembers(teamID) { response in
                         print(response)
-                    })
+                    }
                 }
             case 3: // 团队项目
                 if let teamID = self.teamID {
-                    worktile.teamProjects(teamID, finishCallback: { (response) -> Void in
+                    worktile.teamProjects(teamID) { response in
                         print(response)
-                    })
+                    }
                 }
             default: print("-")
             }
         default:print("~")
         }
     }
-    
-    //
-
 }
 

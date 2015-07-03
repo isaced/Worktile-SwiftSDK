@@ -13,6 +13,10 @@ import Alamofire
 public typealias DictionaryCallback = (Dictionary<String,AnyObject>) -> Void
 public typealias ArrayCallback = (Array<AnyObject>) -> Void
 
+let accessTokenKey = "worktile_access_token"
+let refreshTokenKey = "worktile_refresh_token"
+let expiresDateKey = "worktile_expires_date"
+
 public class Worktile : AuthorizeWebControllerDelegate {
     
     /// 申请应用时分配的 AppKey
@@ -27,12 +31,26 @@ public class Worktile : AuthorizeWebControllerDelegate {
     /// 授权后访问 API 的令牌
     public var accessToken: String?
     
+    /// accessToken 过期时间
+    public var expiresDate: NSDate?
+    
     /// 用于刷新获取最新的access_token
     public var refreshToken: String?
     
     /// 根据 /oauth2/authorize 组装拼接的 OAuth2 授权地址
     public var authorizeURL: String {
         return "https://api.worktile.com/oauth2/authorize?client_id=\(clientID)&redirect_uri=\(Worktile.redirectURI)&display=mobile"
+    }
+    
+    /// 是否需要进行授权登录
+    public var needAuthorize: Bool {
+        // 判断 token 是否过期
+        if let expiresDate = self.expiresDate {
+            if NSDate().compare(expiresDate) == NSComparisonResult.OrderedAscending {
+                return false
+            }
+        }
+        return true
     }
     
     /// 当前授权控制器
@@ -57,6 +75,11 @@ public class Worktile : AuthorizeWebControllerDelegate {
         
         /// 保存 App Key (ClientID)
         self.clientID = appKey
+        
+        /// 从磁盘读取 token
+        self.accessToken = NSUserDefaults.standardUserDefaults().stringForKey(accessTokenKey)
+        self.refreshToken = NSUserDefaults.standardUserDefaults().stringForKey(refreshTokenKey)
+        self.expiresDate = NSUserDefaults.standardUserDefaults().objectForKey(expiresDateKey) as? NSDate
         
         /// 初始化 Alamofire Manager
         let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
@@ -100,12 +123,17 @@ public class Worktile : AuthorizeWebControllerDelegate {
                     if let jsonDict = JSON as? Dictionary<String,AnyObject>{
 
                         // Success
-                        if let accessToken = jsonDict["access_token"] as? String {
-                            self.accessToken = accessToken
-                        }
-
-                        if let refreshToken = jsonDict["refresh_token"] as? String {
-                            self.refreshToken = refreshToken
+                        if let accessToken = jsonDict["access_token"] as? String ,
+                                refreshToken = jsonDict["refresh_token"] as? String ,
+                                expiresIn = jsonDict["expires_in"] as? NSNumber {
+                                    self.accessToken = accessToken
+                                    self.refreshToken = refreshToken
+                                    self.expiresDate = NSDate(timeIntervalSinceNow: expiresIn.doubleValue)
+                                    
+                                    // Save to disk
+                                    NSUserDefaults.standardUserDefaults().setObject(accessToken , forKey: accessTokenKey)
+                                    NSUserDefaults.standardUserDefaults().setObject(refreshToken, forKey: refreshTokenKey)
+                                    NSUserDefaults.standardUserDefaults().setObject(self.expiresDate, forKey: expiresDateKey)
                         }
                         
                         // Error

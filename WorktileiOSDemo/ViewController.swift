@@ -19,6 +19,8 @@ class ViewController: UITableViewController , WorktileDelegate {
         super.viewDidLoad()
 
         worktile.delegate = self
+        
+        print((worktile.needAuthorize ? "需要" : "不需要") + "进行授权登录...")
     }
     
     override func didReceiveMemoryWarning() {

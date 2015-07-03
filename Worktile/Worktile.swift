@@ -97,20 +97,21 @@ public class Worktile : AuthorizeWebControllerDelegate {
             httpManager.request(.POST, "https://api.worktile.com/oauth2/access_token", parameters: ["client_id": self.clientID,"code":authorizeCode])
                 .responseJSON { (_, _, JSON, _) in
 
-                    var jsonDict = JSON as! [String:AnyObject]
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject>{
 
-                    // Success
-                    if let accessToken = jsonDict["access_token"] as? String {
-                        self.accessToken = accessToken
-                    }
+                        // Success
+                        if let accessToken = jsonDict["access_token"] as? String {
+                            self.accessToken = accessToken
+                        }
 
-                    if let refreshToken = jsonDict["refresh_token"] as? String {
-                        self.refreshToken = refreshToken
+                        if let refreshToken = jsonDict["refresh_token"] as? String {
+                            self.refreshToken = refreshToken
+                        }
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                        
                     }
-                    
-                    
-                    // Error
-                    self.printErrorInfo(jsonDict)
             }
         }else{
             print("error : No authorizeCode.")
@@ -211,7 +212,43 @@ public class Worktile : AuthorizeWebControllerDelegate {
         }
     }
     
+    /**
+    获取团队所有成员
+    */
+    public func teamMembers(teamID: String, finishCallback: ArrayCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.GET, self.requestURL("teams",item: teamID,arg2: "members"), parameters: ["access_token":accessToken])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
     
+    /**
+    获取团队所有项目
+    */
+    public func teamProjects(teamID: String, finishCallback: ArrayCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.GET, self.requestURL("teams",item: teamID,arg2: "projects"), parameters: ["access_token":accessToken])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
     
     // MARK: Util
     
@@ -242,9 +279,13 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: responseJSON 请求返回的 JSON Dictionary
     */
     func printErrorInfo(responseJSON : AnyObject) {
-        if let errorCode = responseJSON["error_code"] , errorMessage = responseJSON["error_message"] {
-            print("refreshToken - error:\(errorCode),\(errorMessage)")
+        if let responseJSON = responseJSON as? Dictionary<String,AnyObject> {
+            if let errorCode = responseJSON["error_code"] , errorMessage = responseJSON["error_message"] {
+                print("error:\(errorCode),\(errorMessage)")
+            }
         }
+        
+
     }
 }
 

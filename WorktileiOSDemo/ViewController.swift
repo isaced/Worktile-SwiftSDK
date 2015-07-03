@@ -77,6 +77,18 @@ class ViewController: UITableViewController , WorktileDelegate {
                         print(response)
                     })
                 }
+            case 2: // 团队成员
+                if let teamID = self.teamID {
+                    worktile.teamMembers(teamID, finishCallback: { (response) -> Void in
+                        print(response)
+                    })
+                }
+            case 3: // 团队项目
+                if let teamID = self.teamID {
+                    worktile.teamProjects(teamID, finishCallback: { (response) -> Void in
+                        print(response)
+                    })
+                }
             default: print("-")
             }
         default:print("~")

@@ -10,6 +10,9 @@ import Foundation
 import UIKit
 import Alamofire
 
+public typealias DictionaryCallback = (Dictionary<String,AnyObject>) -> Void
+public typealias ArrayCallback = (Array<AnyObject>) -> Void
+
 public class Worktile : AuthorizeWebControllerDelegate {
     
     /// 申请应用时分配的 AppKey
@@ -60,7 +63,29 @@ public class Worktile : AuthorizeWebControllerDelegate {
         httpManager = Alamofire.Manager(configuration: configuration)
     }
     
+    
     // MARK: OAuth
+    
+    /**
+    授权成功的回调
+    */
+    func authorizeComplate(authorizeCode: String?) {
+        if let authorizeCode = authorizeCode {
+            if authorizeCode.characters.count > 0 {
+                // 储存获取到的 code
+                self.authorizeCode = authorizeCode
+                
+                // 获取 Access token
+                self.getAccessToken()
+                
+                // 获取成功
+                self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: true)
+            }else{
+                // 获取失败
+                self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: false)
+            }
+        }
+    }
     
     /**
     获取 access_token
@@ -77,16 +102,15 @@ public class Worktile : AuthorizeWebControllerDelegate {
                     // Success
                     if let accessToken = jsonDict["access_token"] as? String {
                         self.accessToken = accessToken
-                    }else{
-                        // Error
-                        if let errorCode = jsonDict["error_code"] , errorMessage = jsonDict["error_message"] {
-                            print("access_token - error:\(errorCode),\(errorMessage)")
-                        }
                     }
-                    
+
                     if let refreshToken = jsonDict["refresh_token"] as? String {
                         self.refreshToken = refreshToken
                     }
+                    
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
             }
         }else{
             print("error : No authorizeCode.")
@@ -112,9 +136,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
                         }
                         
                         // Error
-                        if let errorCode = jsonDict["error_code"] , errorMessage = jsonDict["error_message"] {
-                            print("refreshToken - error:\(errorCode),\(errorMessage)")
-                        }
+                        self.printErrorInfo(jsonDict)
                     }
             }
         }
@@ -126,25 +148,6 @@ public class Worktile : AuthorizeWebControllerDelegate {
         return currentAuthorizeViewController!
     }
     
-    /// 授权成功
-    func authorizeComplate(authorizeCode: String?) {
-        if let authorizeCode = authorizeCode {
-            if authorizeCode.characters.count > 0 {
-                // 储存获取到的 code
-                self.authorizeCode = authorizeCode
-                
-                // 获取 Access token
-                self.getAccessToken()
-                
-                // 获取成功
-                self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: true)
-            }else{
-                // 获取失败
-                self.delegate?.authorizeComplate(currentAuthorizeViewController!,success: false)
-            }
-        }
-    }
-    
     // MARK: User
     
     /**
@@ -152,9 +155,9 @@ public class Worktile : AuthorizeWebControllerDelegate {
     
     :param: finishCallback 返回内容
     */
-    public func profile(finishCallback:(Dictionary<String,AnyObject>) -> Void) {
+    public func profile(finishCallback: DictionaryCallback) {
         if let accessToken = accessToken {
-            httpManager.request(.GET, "https://api.worktile.com/v1/user/profile", parameters: ["access_token":accessToken])
+            httpManager.request(.GET, self.requestURL("user/profile"), parameters: ["access_token":accessToken])
                 .responseJSON { (_, _, JSON, _) -> Void in
                     if let jsonDict = JSON as? Dictionary<String,AnyObject> {
                         
@@ -162,15 +165,87 @@ public class Worktile : AuthorizeWebControllerDelegate {
                         finishCallback(jsonDict)
                         
                         // Error
-                        if let errorCode = jsonDict["error_code"] , errorMessage = jsonDict["error_message"] {
-                            print("refreshToken - error:\(errorCode),\(errorMessage)")
-                        }
+                        self.printErrorInfo(jsonDict)
                     }
             }
         }
-
     }
     
+    // MARK: Team
+    
+    /**
+    获取用户所在的团队列表
+    */
+    public func teams(finishCallback: ArrayCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.GET, self.requestURL("teams"), parameters: ["access_token":accessToken])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
+    /**
+    获取团队信息
+    */
+    public func teamInfo(teamID: String, finishCallback: DictionaryCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.GET, self.requestURL("teams",item: teamID), parameters: ["access_token":accessToken])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
+    
+    
+    // MARK: Util
+    
+    /**
+    构造请求的 URL (eg. /projects/:pid/members)
+    
+    :param: arg1 projects
+    :param: item :pid
+    :param: arg2 members
+    */
+    func requestURL(arg1: String, item: String = "", arg2: String = "") -> String {
+        var url = "https://api.worktile.com/v1/" + arg1 + "/"
+        
+        if item.characters.count > 0 {
+            url = url + item + "/"
+            
+            if arg2.characters.count > 0 {
+                url = url + arg2
+            }
+        }
+
+        return url
+    }
+    
+    /**
+    输出错误信息
+    
+    :param: responseJSON 请求返回的 JSON Dictionary
+    */
+    func printErrorInfo(responseJSON : AnyObject) {
+        if let errorCode = responseJSON["error_code"] , errorMessage = responseJSON["error_message"] {
+            print("refreshToken - error:\(errorCode),\(errorMessage)")
+        }
+    }
 }
 
 // MARK: Delegate

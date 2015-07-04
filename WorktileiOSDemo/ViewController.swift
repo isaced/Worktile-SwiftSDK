@@ -14,6 +14,7 @@ class ViewController: UITableViewController , WorktileDelegate {
     let worktile = Worktile(appKey: "eef4247ee75c4eeba9946900f9579688")
     
     var teamID: String?
+    var projectID: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -91,6 +92,46 @@ class ViewController: UITableViewController , WorktileDelegate {
                     }
                 }
             default: print("-")
+            }
+        case 3: // 项目
+            switch indexPath.row {
+            case 0: // 项目列表
+                worktile.projects { response in
+                    print(response)
+                    
+                    // 取一个项目ID后面用
+                    if let response = response as? Array<Dictionary<String,AnyObject>> {
+                        if let firstTeam = response.first {
+                            self.projectID = firstTeam["pid"] as? String
+                        }
+                    }
+                }
+            case 1: // 项目详情
+                if let projectID = self.projectID {
+                    worktile.projectInfo(projectID) { response in
+                        print(response)
+                    }
+                }
+            case 2: // 项目成员
+                if let projectID = self.projectID {
+                    worktile.projectMembers(projectID) { response in
+                        print(response)
+                    }
+                }
+            case 3: // 项目添加成员
+                if let projectID = self.projectID {
+                    worktile.projectAddMember(projectID, userID: "000", role: 1) { response in
+                        print(response)
+                    }
+                }
+                
+            case 4: // 项目移除成员
+                if let projectID = self.projectID {
+                    worktile.projectRemoveMember(projectID, userID: "000") { response in
+                        print(response)
+                    }
+                }
+            default:print("-")
             }
         default:print("~")
         }

@@ -386,6 +386,141 @@ public class Worktile : AuthorizeWebControllerDelegate {
         }
     }
     
+    // MARK: Entries
+    
+    /**
+    获取项目的任务组列表
+    
+    :param: projectID      项目ID
+    */
+    public func entries(projectID: String, finishCallback: ArrayCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.GET, self.requestURL("entries"), parameters: ["access_token":accessToken,"pid":projectID])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
+    /**
+    创建任务组
+    
+    :param: projectID      项目ID
+    :param: name           任务组名
+    */
+    public func entryCreate(projectID: String,name: String, finishCallback: DictionaryCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.POST, self.requestURL("entry"), parameters: ["access_token":accessToken,"pid":projectID,"name":name])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
+    /**
+    任务组重命名
+    
+    :param: projectID      项目ID
+    :param: entryId        任务组ID
+    :param: name           任务组名
+    */
+    public func entryRename(projectID: String,entryId: String, name:String, finishCallback: DictionaryCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.PUT, self.requestURL("entry",item: entryId), parameters: ["access_token":accessToken,"pid":projectID,"name":name])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+
+    
+    /**
+    任务组删除
+    
+    :param: projectID      项目ID
+    :param: entryId        任务组ID
+    */
+    public func entryDelete(projectID: String,entryId: String, finishCallback: DictionaryCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.DELETE, self.requestURL("entry",item: entryId), parameters: ["access_token":accessToken,"entry_id":entryId])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
+    /**
+    关注任务组
+    
+    :param: projectID      项目ID
+    :param: entryId        任务组ID
+    */
+    public func entryWatch(projectID: String,entryId: String, finishCallback: DictionaryCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.POST, self.requestURL("entry",item: entryId,arg2: "watcher"), parameters: ["access_token":accessToken,"pid":projectID])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
+    /**
+    取消关注任务组
+    
+    :param: projectID      项目ID
+    :param: entryId        任务组ID
+    */
+    public func entryUnwatch(projectID: String,entryId: String, finishCallback: DictionaryCallback) {
+        if let accessToken = accessToken {
+            httpManager.request(.DELETE, self.requestURL("entry",item: entryId,arg2: "watcher"), parameters: ["access_token":accessToken,"pid":projectID])
+                .responseJSON { (_, _, JSON, _) -> Void in
+                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                        
+                        // Success
+                        finishCallback(jsonDict)
+                        
+                        // Error
+                        self.printErrorInfo(jsonDict)
+                    }
+            }
+        }
+    }
+    
     // MARK: Util
     
     /**

@@ -81,11 +81,19 @@ public class Worktile : AuthorizeWebControllerDelegate {
         self.refreshToken = NSUserDefaults.standardUserDefaults().stringForKey(refreshTokenKey)
         self.expiresDate = NSUserDefaults.standardUserDefaults().objectForKey(expiresDateKey) as? NSDate
         
-        /// 初始化 Alamofire Manager
-        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
-        httpManager = Alamofire.Manager(configuration: configuration)
+        httpManager = Alamofire.Manager()
+        
+        self.initHTTPManager()
     }
     
+    /// 初始化 Alamofire Manager
+    func initHTTPManager() {
+        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+        if let accessToken = self.accessToken {
+            configuration.HTTPAdditionalHeaders = ["access_token":accessToken];
+        }
+        httpManager = Alamofire.Manager(configuration: configuration)
+    }
     
     // MARK: OAuth
     
@@ -134,6 +142,8 @@ public class Worktile : AuthorizeWebControllerDelegate {
                                     NSUserDefaults.standardUserDefaults().setObject(accessToken , forKey: accessTokenKey)
                                     NSUserDefaults.standardUserDefaults().setObject(refreshToken, forKey: refreshTokenKey)
                                     NSUserDefaults.standardUserDefaults().setObject(self.expiresDate, forKey: expiresDateKey)
+                                    
+                                    self.initHTTPManager()
                         }
                         
                         // Error
@@ -185,18 +195,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: finishCallback 返回内容
     */
     public func profile(finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("user/profile"), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("user/profile"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -206,18 +214,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     获取用户所在的团队列表
     */
     public func teams(finishCallback: ArrayCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("teams"), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("teams"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -225,18 +231,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     获取团队信息
     */
     public func teamInfo(teamID: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("teams",item: teamID), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("teams",item: teamID))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -244,18 +248,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     获取团队所有成员
     */
     public func teamMembers(teamID: String, finishCallback: ArrayCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("teams",item: teamID,arg2: "members"), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("teams",item: teamID,arg2: "members"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -263,18 +265,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     获取团队所有项目
     */
     public func teamProjects(teamID: String, finishCallback: ArrayCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("teams",item: teamID,arg2: "projects"), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("teams",item: teamID,arg2: "projects"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -284,18 +284,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     获取用户所有项目
     */
     public func projects(finishCallback: ArrayCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("projects"), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("projects"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
 
@@ -305,18 +303,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: projectID      项目ID
     */
     public func projectInfo(projectID: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("projects",item: projectID), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("projects",item: projectID))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -326,18 +322,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: projectID      项目ID
     */
     public func projectMembers(projectID: String, finishCallback: ArrayCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("projects",item: projectID,arg2: "members"), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("projects",item: projectID,arg2: "members"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -349,18 +343,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: role           成员角色
     */
     public func projectAddMember(projectID: String,userID: String,role: Int, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.POST, self.requestURL("projects",item: projectID,arg2: "members"), parameters: ["access_token":accessToken,"pid":projectID,"uid":userID,"role":role])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.POST, self.requestURL("projects",item: projectID,arg2: "members"), parameters: ["pid":projectID,"uid":userID,"role":role])
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -371,18 +363,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: uid            用户ID
     */
     public func projectRemoveMember(projectID: String,userID: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.DELETE, self.requestURL("projects",item: projectID,arg2: "members",arg3: userID), parameters: ["access_token":accessToken])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.DELETE, self.requestURL("projects",item: projectID,arg2: "members",arg3: userID))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -394,18 +384,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: projectID      项目ID
     */
     public func entries(projectID: String, finishCallback: ArrayCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.GET, self.requestURL("entries"), parameters: ["access_token":accessToken,"pid":projectID])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.GET, self.requestURL("entries"), parameters: ["pid":projectID])
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -416,18 +404,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: name           任务组名
     */
     public func entryCreate(projectID: String,name: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.POST, self.requestURL("entry"), parameters: ["access_token":accessToken,"pid":projectID,"name":name])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.POST, self.requestURL("entry",params: ["pid":projectID]), parameters: ["name":name])
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -439,18 +425,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: name           任务组名
     */
     public func entryRename(projectID: String,entryId: String, name:String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.PUT, self.requestURL("entry",item: entryId), parameters: ["access_token":accessToken,"pid":projectID,"name":name])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.PUT, self.requestURL("entries",item: entryId,params: ["pid":projectID]), parameters: ["name":name])
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
 
@@ -462,18 +446,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: entryId        任务组ID
     */
     public func entryDelete(projectID: String,entryId: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.DELETE, self.requestURL("entry",item: entryId), parameters: ["access_token":accessToken,"entry_id":entryId])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.DELETE, self.requestURL("entries",item: entryId,params: ["pid":projectID]))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -484,18 +466,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: entryId        任务组ID
     */
     public func entryWatch(projectID: String,entryId: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.POST, self.requestURL("entry",item: entryId,arg2: "watcher"), parameters: ["access_token":accessToken,"pid":projectID])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.POST, self.requestURL("entries",item: entryId,arg2: "watcher",params: ["pid":projectID]))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -506,18 +486,16 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: entryId        任务组ID
     */
     public func entryUnwatch(projectID: String,entryId: String, finishCallback: DictionaryCallback) {
-        if let accessToken = accessToken {
-            httpManager.request(.DELETE, self.requestURL("entry",item: entryId,arg2: "watcher"), parameters: ["access_token":accessToken,"pid":projectID])
-                .responseJSON { (_, _, JSON, _) -> Void in
-                    if let jsonDict = JSON as? Dictionary<String,AnyObject> {
-                        
-                        // Success
-                        finishCallback(jsonDict)
-                        
-                        // Error
-                        self.printErrorInfo(jsonDict)
-                    }
-            }
+        httpManager.request(.DELETE, self.requestURL("entries",item: entryId,arg2: "watcher",params: ["pid":projectID]))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+                    
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
         }
     }
     
@@ -530,7 +508,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
     :param: item :pid
     :param: arg2 members
     */
-    func requestURL(arg1: String, item: String = "", arg2: String = "", arg3: String = "") -> String {
+    func requestURL(arg1: String, item: String = "", arg2: String = "", arg3: String = "", params: Dictionary<String,String> = ["":""]) -> String {
         var url = "https://api.worktile.com/v1/" + arg1 + "/"
         
         if item.characters.count > 0 {
@@ -544,7 +522,21 @@ public class Worktile : AuthorizeWebControllerDelegate {
         if arg3.characters.count > 0 {
             url = url + arg3
         }
-
+        
+        if params.keys.first != "" {
+            
+            // 去掉最后一位 /
+            if url.characters.last == "/" {
+                url.removeAtIndex(url.endIndex.predecessor())
+            }
+            
+            url = url + "?"
+            for (key,value) in params {
+                url = url + key + "=" + value
+            }
+        }
+        
+        print("request:" + url)
         return url
     }
     

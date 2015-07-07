@@ -15,6 +15,7 @@ class ViewController: UITableViewController , WorktileDelegate {
     
     var teamID: String?
     var projectID: String?
+    var entrieID: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -128,6 +129,55 @@ class ViewController: UITableViewController , WorktileDelegate {
             case 4: // 项目移除成员
                 if let projectID = self.projectID {
                     worktile.projectRemoveMember(projectID, userID: "000") { response in
+                        print(response)
+                    }
+                }
+            default:print("-")
+            }
+        case 4: // 任务组
+            switch indexPath.row {
+            case 0: // 获取项目的任务组列表
+                if let projectID = self.projectID {
+                    worktile.entries(projectID) { response in
+                        print(response)
+                        
+                        // 取一个项目ID后面用
+                        if let response = response as? Array<Dictionary<String,AnyObject>> {
+                            if let firstObject = response.first {
+                                self.entrieID = firstObject["entry_id"] as? String
+                            }
+                        }
+                    }
+                }else{
+                    print("需要读取到一个项目(Project)")
+                }
+            case 1: // 创建任务组
+                if let projectID = self.projectID {
+                    worktile.entryCreate(projectID, name: "TestEntry") { response in
+                        print(response)
+                    }
+                }
+            case 2: // 任务组重命名
+                if let projectID = self.projectID, entrieID = self.entrieID {
+                    worktile.entryRename(projectID, entryId: entrieID, name: "TESTEntry") { response in
+                        print(response)
+                    }
+                }
+            case 3: // 删除任务组
+                if let projectID = self.projectID, entrieID = self.entrieID {
+                    worktile.entryDelete(projectID, entryId: entrieID) { response in
+                        print(response)
+                    }
+                }
+            case 4: // 关注任务组
+                if let projectID = self.projectID, entrieID = self.entrieID {
+                    worktile.entryWatch(projectID, entryId: entrieID) { response in
+                        print(response)
+                    }
+                }
+            case 5: // 取消关注任务组
+                if let projectID = self.projectID, entrieID = self.entrieID {
+                    worktile.entryUnwatch(projectID, entryId: entrieID) { response in
                         print(response)
                     }
                 }

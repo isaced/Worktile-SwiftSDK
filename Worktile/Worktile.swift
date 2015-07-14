@@ -501,6 +501,7 @@ public class Worktile : AuthorizeWebControllerDelegate {
     
     // MARK: Task
     
+    //获取项目的任务列表
     public func tasks(projectID: String, finishCallback: ArrayCallback) {
         httpManager.request(.GET, self.requestURL("tasks", item: "", arg2: "", arg3: "", params: ["pid":projectID]))
             .responseJSON { (_, _, JSON, _) -> Void in
@@ -515,7 +516,20 @@ public class Worktile : AuthorizeWebControllerDelegate {
         }
     }
     
-    
+    // 即将过期的任务
+    public func todayTasks(finishCallback: ArrayCallback) {
+        httpManager.request(.GET, self.requestURL("tasks", item: "today"))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let response = JSON as? Array<Dictionary<String,AnyObject>> {
+                    
+                    // Success
+                    finishCallback(response)
+                    
+                    // Error
+                    self.printErrorInfo(response)
+                }
+        }
+    }
     
     // MARK: Util
     

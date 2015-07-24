@@ -546,6 +546,21 @@ public class Worktile : AuthorizeWebControllerDelegate {
         }
     }
     
+    // 任务详情
+    public func taskDetail(projectID: String, taskID: String, finishCallback: DictionaryCallback) {
+        httpManager.request(.GET, self.requestURL("tasks",item: taskID,params: ["pid":projectID]))
+            .responseJSON { (_, _, JSON, _) -> Void in
+                if let jsonDict = JSON as? Dictionary<String,AnyObject> {
+
+                    // Success
+                    finishCallback(jsonDict)
+                    
+                    // Error
+                    self.printErrorInfo(jsonDict)
+                }
+        }
+    }
+    
     // MARK: Util
     
     /**
